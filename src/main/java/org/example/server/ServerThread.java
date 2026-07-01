@@ -9,7 +9,6 @@ import java.net.Socket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -31,6 +30,7 @@ import org.example.db.User;
  * ERROR|INVALID := invalid input.
  * ERROR|ADDUSR := unable to add user.
  * ERROR|EXISTSUSR := unable to locate user.
+ * ERROR|UPDATEUSR := unable to update user.
  * ERROR|REMOVEUSR := unable to remove user.
  * ERROR|LISTUSRS := unable to list users.
  * OKAY|LOG := successful login/logout.
@@ -47,6 +47,7 @@ import org.example.db.User;
  * OKAY|SENDMSG := message successfully sent.
  * OKAY|ADDUSR := successfully added user.
  * OKAY|EXISTSUSR := user exists.
+ * OKAY|UPDATEUSR := successfully updated user with given fields.
  * OKAY|REMOVEUSR := successfully removed user.
  * OKAY|LISTSTART := sending user data.
  ** USERNAME|PASSWORD|ADMINSTATUS|FIRSTNAME|LASTNAME|BIRTHDAY|GENDER|EMAIL := user list data format.
@@ -65,6 +66,25 @@ public class ServerThread extends Thread
     public ServerThread(Socket socket)
     {
         client = socket;
+    }
+
+    public static Boolean checkDate(String date) // returns whether the given string IS a valid date.
+    {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        try
+        {
+            LocalDate.parse(date, formatter);
+            return true;
+        }
+        catch (DateTimeParseException err)
+        {
+            return false;
+        }
+    }
+
+    public static Boolean checkEmail(String email) // returns whether the given string is NOT a valid email address.
+    {
+        return email.indexOf('@')<0 || email.lastIndexOf('.')<0 || email.indexOf('@')!=email.lastIndexOf('@') || email.indexOf('@')>email.lastIndexOf('.') || email.charAt(email.indexOf('@')+1)=='.' || email.charAt(email.length()-1)=='.';
     }
 
     @Override
@@ -260,12 +280,7 @@ public class ServerThread extends Thread
                                 out.println("ERROR|INVALID");
                                 break;
                             }
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                            try
-                            {
-                                LocalDate.parse(config[6], formatter);
-                            }
-                            catch (DateTimeParseException err)
+                            if(!checkEmail(config[6]))
                             {
                                 out.println("ERROR|INVALID");
                                 break;
@@ -274,7 +289,7 @@ public class ServerThread extends Thread
                                 out.println("ERROR|INVALID");
                                 break;
                             }
-                            if(config[8].indexOf('@')<0 || config[8].lastIndexOf('.')<0 || config[8].indexOf('@')!=config[8].lastIndexOf('@') || config[8].indexOf('@')>config[8].lastIndexOf('.'))
+                            if(checkEmail(config[8]))
                             {
                                 out.println("ERROR|INVALID");
                                 break;
@@ -316,6 +331,82 @@ public class ServerThread extends Thread
                                 out.println("OKAY|EXISTSUSR");
                             else
                                 out.println("ERROR|EXISTSUSR");
+                        }
+                        case ("UPDATEUSR") -> {
+                            if(usrname.isEmpty())
+                            {
+                                out.println("ERROR|NOTLOG");
+                                break;
+                            }
+                            if(!isAdmin)
+                            {
+                                out.println("ERROR|NOTADMIN");
+                                break;
+                            }
+                            if(config.length%2!=0)
+                            {
+                                out.println("ERROR|ARGS");
+                                break;
+                            }
+                            for(String entry : config)
+                                if (entry.isEmpty()) {
+                                    out.println("ERROR|INVALID");
+                                    break main;
+                                }
+                            if(!backend.existsUser(new User(config[1])))
+                            {
+                                out.println("ERROR|INVALID");
+                                break;
+                            }
+                            User usr = backend.makeUser(config[1]);
+                            for(int i=0; i<config.length/2-1; i++)
+                            {
+                                switch (config[2*i+2])
+                                {
+                                    case ("PASSWORD") -> usr.setPassword(config[2*i+3]);
+                                    case ("ADMINSTATUS") -> {
+                                        if(config[2*i+3].equals("true") || config[2*i+3].equals("false"))
+                                            usr.setAdmin(config[2*i+3].equals("true"));
+                                        else
+                                        {
+                                            out.println("ERROR|INVALID");
+                                            break main;
+                                        }
+                                    }
+                                    case ("FIRSTNAME") -> usr.setFirstName(config[2*i+3]);
+                                    case ("LASTNAME") -> usr.setLastName(config[2*i+3]);
+                                    case ("BIRTHDAY") -> {
+                                        if(checkDate(config[2*i+3]))
+                                            usr.setBirthday(config[2*i+3]);
+                                        else
+                                        {
+                                            out.println("ERROR|INVALID");
+                                            break main;
+                                        }
+                                    }
+                                    case ("GENDER") -> {
+                                        if(config[2*i+3].equals("M") || config[2*i+3].equals("F"))
+                                            usr.setGender(config[2*i+3].equals("M")?'M':'F');
+                                        else
+                                        {
+                                            out.println("ERROR|INVALID");
+                                            break main;
+                                        }
+                                    }
+                                    case ("EMAIL") -> {
+                                        if(checkEmail(config[2*i+3]))
+                                        {
+                                            out.println("ERROR|INVALID");
+                                            break main;
+                                        }
+                                        usr.setEmail(config[2*i+3]);
+                                    }
+                                }
+                            }
+                            if(backend.updateUser(usr))
+                                out.println("OKAY|UPDATEUSR");
+                            else
+                                out.println("ERROR|UPDATEUSR");
                         }
                         case ("REMOVEUSR") -> {
                             if(usrname.isEmpty())

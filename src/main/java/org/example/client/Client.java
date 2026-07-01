@@ -1,13 +1,13 @@
 package org.example.client;
 
+import org.example.server.ServerThread;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +22,7 @@ public class Client
         SENDMSG,
         ADDUSR,
         EXISTSUSR,
+        UPDATEUSR,
         REMOVEUSR,
         LISTUSRS
     }
@@ -75,8 +76,9 @@ public class Client
                         {
                             System.out.println("6. add - adds a specified user.");
                             System.out.println("7. query - checks whether a specified user exists.");
-                            System.out.println("8. remove - removes a specified user.");
-                            System.out.println("9. list - lists all of the users.");
+                            System.out.println("8. update - updates the specified fields for a given user.");
+                            System.out.println("9. remove - removes a specified user.");
+                            System.out.println("10. list - lists all of the users.");
                         }
                         System.out.print("> ");
                         String action = sc.nextLine();
@@ -122,6 +124,10 @@ public class Client
                             case ("query") -> {
                                 if (adminStatus)
                                     state = State.EXISTSUSR;
+                            }
+                            case ("update") -> {
+                                if(adminStatus)
+                                    state = State.UPDATEUSR;
                             }
                             case ("remove") -> {
                                 if (adminStatus)
@@ -339,6 +345,111 @@ public class Client
                             case ("INVALID") -> System.out.println("Invalid entry.");
                             case ("EXISTSUSR") -> {
                                 System.out.println("Unable to locate the user "+usrname+".");
+                                TimeUnit.SECONDS.sleep(2);
+                                state=State.IDLE;
+                            }
+                        }
+                    }
+                    case UPDATEUSR -> {
+                        String protocol = "UPDATEUSR|";
+                        Boolean done = false;
+                        String data;
+                        String field;
+                        String finish;
+                        System.out.println("You are updating the specified fields for a given user.");
+                        System.out.print("Enter username:\n> ");
+                        String usrname = sc.nextLine();
+                        protocol += usrname + "|";
+                        while(!done)
+                        {
+                            System.out.print("Specify a field: (password, admin status, first name, last name, birthday, gender, email)\nYou cannot change the username.\n> ");
+                            field = sc.nextLine();
+                            switch (field)
+                            {
+                                case ("password") -> {
+                                    System.out.print("Enter new password:\n> ");
+                                    data = sc.nextLine();
+                                    protocol += "PASSWORD|" + data + "|";
+                                }
+                                case ("admin status") -> {
+                                    System.out.print("Enter new admin status:\n> ");
+                                    data = sc.nextLine();
+                                    if (data.equals("true") || data.equals("false"))
+                                        protocol += "ADMINSTATUS|" + data + "|";
+                                    else
+                                        System.out.println("Skipping invalid entry.");
+                                }
+                                case ("first name") -> {
+                                    System.out.print("Enter new first name:\n> ");
+                                    data = sc.nextLine();
+                                    protocol += "FIRSTNAME|" + data + "|";
+                                }
+                                case ("last name") -> {
+                                    System.out.print("Enter new last name:\n> ");
+                                    data = sc.nextLine();
+                                    protocol += "LASTNAME|" + data + "|";
+                                }
+                                case ("birthday") -> {
+                                    System.out.print("Enter new birthday:\n> ");
+                                    data = sc.nextLine();
+                                    if(ServerThread.checkDate(data))
+                                        protocol += "BIRTHDAY|" + data + "|";
+                                    else
+                                        System.out.println("Skipping invalid entry.");
+                                }
+                                case ("gender") -> {
+                                    System.out.print("Enter new gender:\n> ");
+                                    data = sc.nextLine();
+                                    if(data.equals("M") || data.equals("F"))
+                                        protocol += "BIRTHDAY|" + data + "|";
+                                    else
+                                        System.out.println("Skipping invalid entry.");
+                                }
+                                case ("email") -> {
+                                    System.out.print("Enter new email:\n> ");
+                                    data = sc.nextLine();
+                                    if(!ServerThread.checkEmail(data))
+                                        protocol += "EMAIL|" + data + "|";
+                                    else
+                                        System.out.println("Skipping invalid entry.");
+                                }
+                                default -> System.out.println("Skipping invalid field, please try again.");
+                            }
+                            System.out.print("Are you done? (yes/no)\n> ");
+                            finish = sc.nextLine();
+                            while(!finish.equals("yes") && !finish.equals("no"))
+                            {
+                                System.out.print("> ");
+                                finish = sc.nextLine();
+                            }
+                            if(finish.equals("yes"))
+                                done=true;
+                        }
+                        protocol = protocol.substring(0, protocol.length()-1);
+                        out.println(protocol);
+                        String[] response = in.readLine().split("\\|");
+                        if(response[0].equals("OKAY"))
+                        {
+                            System.out.println("Updated the user "+usrname+" with the given specifications.");
+                            TimeUnit.SECONDS.sleep(2);
+                            state=State.IDLE;
+                        }
+                        else switch(response[1])
+                        {
+                            case ("NOTLOG") -> {
+                                System.out.println("You are not logged in.");
+                                TimeUnit.SECONDS.sleep(2);
+                                state=State.LOGGED_OUT;
+                            }
+                            case ("NOTADMIN") -> {
+                                System.out.println("You are not an admin.");
+                                TimeUnit.SECONDS.sleep(2);
+                                state=State.IDLE;
+                            }
+                            case ("ARGS") -> System.out.println("Invalid argument count.");
+                            case ("INVALID") -> System.out.println("Invalid entries.");
+                            case ("UPDATEUSR") -> {
+                                System.out.println("Unable to update the user "+usrname+".");
                                 TimeUnit.SECONDS.sleep(2);
                                 state=State.IDLE;
                             }

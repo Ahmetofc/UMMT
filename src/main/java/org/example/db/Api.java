@@ -99,8 +99,7 @@ public class Api
             stmt.setString(2, msg.getFrom());
             stmt.setString(3, msg.getDate());
             stmt.setString(4, msg.getContent());
-            stmt.executeUpdate();
-            return true;
+            return stmt.executeUpdate()!=0;
         }
         catch(SQLException err)
         {
@@ -124,8 +123,7 @@ public class Api
             stmt.setString(6, usr.getBirthday());
             stmt.setString(7, String.valueOf(usr.getGender()));
             stmt.setString(8, usr.getEmail());
-            stmt.executeUpdate();
-            return true;
+            return stmt.executeUpdate()!=0;
         }
         catch(SQLException err)
         {
@@ -153,6 +151,49 @@ public class Api
         }
     }
 
+    public User makeUser(String usrname)
+    {
+        String query = "SELECT * FROM users U WHERE U.username=?;";
+        try
+        {
+            Connection conn = DriverManager.getConnection(dbURL);
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setString(1, usrname);
+            ResultSet res = stmt.executeQuery();
+            res.next();
+            return new User(res.getString(1), res.getString(2), res.getBoolean(3), res.getString(4), res.getString(5), res.getString(6), res.getString(7).equals("M")?'M':'F', res.getString(8));
+        }
+        catch (SQLException err)
+        {
+            err.printStackTrace();
+            return new User();
+        }
+    }
+
+    public Boolean updateUser(User usr)
+    {
+        String query = "UPDATE users SET password=?, admin=?, firstname=?, lastname=?, birthday=?, gender=?, email=? WHERE username=?;";
+        try
+        {
+            Connection conn = DriverManager.getConnection(dbURL);
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setString(1, usr.getPassword());
+            stmt.setBoolean(2, usr.getAdmin());
+            stmt.setString(3, usr.getFirstName());
+            stmt.setString(4, usr.getLastName());
+            stmt.setString(5, usr.getBirthday());
+            stmt.setString(6, usr.getGender().toString());
+            stmt.setString(7, usr.getEmail());
+            stmt.setString(8, usr.getUsername());
+            return stmt.executeUpdate()!=0;
+        }
+        catch (SQLException err)
+        {
+            err.printStackTrace();
+            return false;
+        }
+    }
+
     public Boolean removeUser(User usr)
     {
         String query = "DELETE FROM users U WHERE U.username=?;";
@@ -163,8 +204,7 @@ public class Api
             Connection conn = DriverManager.getConnection(dbURL);
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, usr.getUsername());
-            stmt.executeUpdate();
-            return true;
+            return stmt.executeUpdate()!=0;
         }
         catch(SQLException err)
         {

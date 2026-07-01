@@ -31,6 +31,10 @@ public class User
         username=_username;
     }
 
+    public User()
+    {
+    }
+
     public void setUsername(String _username)
     {
         username=_username;
