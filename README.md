@@ -22,8 +22,8 @@ passes data back and forth through the client-server connection using string byt
 SDP is based on the TCP protocol, since it utilizes `java.net.Socket` and `java.net.ServerSocket` classes
 under the hood. UMMT is a state-machine, the thread handling a user has 10 states: `LOGGED_OUT`, `IDLE`, `INBOX`, 
 `OUTBOX`,`SENDMSG`, `ADDUSR`,`EXISTSUSR`, `UPDATEUSR`,`REMOVEUSR`, and `LISTUSRS`; each corresponding to a 
-client-side status code. The `LOGGED_OUT` state is the starting state, and on a successful login attempt it transitions 
-into the main central node, `IDLE`. From `IDLE` the machine can transition into every other remaining states, and after 
+client-side token. The `LOGGED_OUT` state is the starting state, and on a successful login attempt it transitions 
+into the main central node, `IDLE`. From `IDLE` the machine can transition into every other remaining state, and after 
 each successful state completion, the machine goes back to the `IDLE` state.
 
 ### Data Flow Diagram
@@ -53,8 +53,6 @@ flowchart LR
 ```
 
 ### Tokens & Status Codes
-
-Status codes along with their explanations:
 
 #### Client-Side Tokens
 
@@ -132,4 +130,4 @@ initiates the creation of another user in the system.
 Over the course of the 3 days I have worked on this mini-project, I have improved the protocol quite drastically, and documented its
 internal working principles for easier understanding. As a developer coming from a strong C++ background,
 learning Java from scratch has bolstered my interest towards the language. I hope to integrate Java more
-closely to my software developer stack, and utilize its practicality to the full extent.
+closely into my software developer stack, and utilize its practicality to the full extent.
