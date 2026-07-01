@@ -1,59 +1,21 @@
-package org.example.server;
+package proj.AhmetRakap.server;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.LocalDate;
 
-import org.example.db.Api;
-import org.example.db.Message;
-import org.example.db.User;
+import proj.AhmetRakap.db.Api;
+import proj.AhmetRakap.db.Message;
+import proj.AhmetRakap.db.User;
 
-/*
- * STATUS CODES
- *
- * ERROR|NOTLOG := not logged in.
- * ERROR|ARGS := invalid argument count.
- * ERROR|LOG := already logged in/out.
- * ERROR|INBOX := unable to load the inbox.
- * ERROR|OUTBOX := unable to load the outbox.
- * ERROR|NOMATCH := target does not exist.
- * ERROR|SENDMSG := unable to send message.
- * ERROR|NOTADMIN := not an admin.
- * ERROR|INVALID := invalid input.
- * ERROR|ADDUSR := unable to add user.
- * ERROR|EXISTSUSR := unable to locate user.
- * ERROR|UPDATEUSR := unable to update user.
- * ERROR|REMOVEUSR := unable to remove user.
- * ERROR|LISTUSRS := unable to list users.
- * OKAY|LOG := successful login/logout.
- * OKAY|ADMIN := user is admin.
- * OKAY|NOTADMIN := user is not an admin.
- * OKAY|NOTLOG := successfully logged out.
- * OKAY|EXIT := successful exit.
- * OKAY|INBOXSTART := sending inbox data.
- ** TO|FROM|DATE|CONTENT := inbox data format.
- * OKAY|INBOXEND := successfully sent inbox data.
- * OKAY|OUTBOXSTART := sending outbox data.
- ** TO|FROM|DATE|CONTENT := outbox data format.
- * OKAY|OUTBOXEND := successfully sent outbox data.
- * OKAY|SENDMSG := message successfully sent.
- * OKAY|ADDUSR := successfully added user.
- * OKAY|EXISTSUSR := user exists.
- * OKAY|UPDATEUSR := successfully updated user with given fields.
- * OKAY|REMOVEUSR := successfully removed user.
- * OKAY|LISTSTART := sending user data.
- ** USERNAME|PASSWORD|ADMINSTATUS|FIRSTNAME|LASTNAME|BIRTHDAY|GENDER|EMAIL := user list data format.
- * OKAY|LISTEND := successfully sent user data.
- *
- */
 
 public class ServerThread extends Thread
 {

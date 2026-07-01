@@ -1,15 +1,15 @@
-package org.example.client;
-
-import org.example.server.ServerThread;
+package proj.AhmetRakap.client;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Scanner;
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
+import java.util.Scanner;
+
+import proj.AhmetRakap.server.ServerThread;
 
 public class Client
 {
@@ -47,7 +47,11 @@ public class Client
                         System.out.print("Username:\n> ");
                         String usrname = sc.nextLine();
                         System.out.print("Password:\n> ");
-                        String pswd = sc.nextLine();
+                        String pswd;
+                        if(System.console() == null)
+                            pswd = sc.nextLine();
+                        else
+                            pswd = new String(System.console().readPassword());
                         out.println("LOGIN|"+usrname+"|"+pswd);
                         String[] response = in.readLine().split("\\|");
                         if(response[0].equals("OKAY"))

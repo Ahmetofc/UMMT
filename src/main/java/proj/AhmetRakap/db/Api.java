@@ -1,4 +1,4 @@
-package org.example.db;
+package proj.AhmetRakap.db;
 
 import java.sql.*;
 

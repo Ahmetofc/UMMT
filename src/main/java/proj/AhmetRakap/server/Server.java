@@ -1,4 +1,4 @@
-package org.example.server;
+package proj.AhmetRakap.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
