@@ -14,12 +14,12 @@
 ## Description
 
 This is the project I made for learning, improving, and practicing my networking skills.
-I have developed my own simple TCP based data transfer protocol, called PLACEHOLDER, which simply 
+I have developed my own simple TCP based data transfer protocol, called SDP (Simple Dataflow Protocol), which simply 
 passes data back and forth through the client-server connection using string byte-streams.
 
 ## Architecture
 
-PLACEHOLDER is based on the TCP protocol, since it utilizes `java.net.Socket` and `java.net.ServerSocket` classes
+SDP is based on the TCP protocol, since it utilizes `java.net.Socket` and `java.net.ServerSocket` classes
 under the hood. UMMT is a state-machine, the thread handling a user has 10 states: `LOGGED_OUT`, `IDLE`, `INBOX`, 
 `OUTBOX`,`SENDMSG`, `ADDUSR`,`EXISTSUSR`, `UPDATEUSR`,`REMOVEUSR`, and `LISTUSRS`; each corresponding to a 
 client-side status code. The `LOGGED_OUT` state is the starting state, and on a successful login attempt it transitions 
