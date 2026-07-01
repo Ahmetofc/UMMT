@@ -158,6 +158,8 @@ public class Api
         String query = "DELETE FROM users U WHERE U.username=?;";
         try
         {
+            if(!existsUser(new User(usr.getUsername())))
+                return false;
             Connection conn = DriverManager.getConnection(dbURL);
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, usr.getUsername());

@@ -1,4 +1,4 @@
-package org.example;
+package org.example.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -23,6 +23,7 @@ public class Server
         }
         catch (IOException err)
         {
+            System.out.println("Unable to initiate the server.");
             err.printStackTrace();
         }
     }
