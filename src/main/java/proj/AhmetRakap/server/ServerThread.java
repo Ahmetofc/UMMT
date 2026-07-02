@@ -6,11 +6,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 import proj.AhmetRakap.db.Api;
 import proj.AhmetRakap.db.Message;
@@ -52,11 +53,8 @@ public class ServerThread extends Thread
     @Override
     public void run()
     {
-        Api backend = new Api();
-        try
+        try(Api backend = new Api(); BufferedReader in = new BufferedReader( new InputStreamReader(client.getInputStream()));PrintWriter out = new PrintWriter(client.getOutputStream(), true))
         {
-            BufferedReader in = new BufferedReader( new InputStreamReader(client.getInputStream()));
-            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
             while(true)
             {
                 String input = in.readLine();
@@ -140,20 +138,20 @@ public class ServerThread extends Thread
                             User usr = new User(usrname);
                             try
                             {
-                                ResultSet res;
+                                ArrayList<Message> res;
                                 if(config.length == 1)
                                     res = backend.inbox(usr);
                                 else
                                     res = backend.inbox(usr, config[1]);
-                                out.println("OKAY|INBOXSTART");
-                                while(res.next())
-                                    out.println(res.getString(2)+"|"+res.getString(3)+"|"+res.getString(4));
-                                out.println("OKAY|INBOXEND");
-                            }
-                            catch (SQLException err)
-                            {
-                                err.printStackTrace();
-                                out.println("ERROR|INBOX");
+                                if(res != null)
+                                {
+                                    out.println("OKAY|INBOXSTART");
+                                    for (Message msg : res)
+                                        out.println(msg.getFrom()+"|"+msg.getDate()+"|"+msg.getContent());
+                                    out.println("OKAY|INBOXEND");
+                                }
+                                else
+                                    out.println("ERROR|INBOX");
                             }
                             catch (IllegalArgumentException err)
                             {
@@ -179,20 +177,20 @@ public class ServerThread extends Thread
                             User usr = new User(usrname);
                             try
                             {
-                                ResultSet res;
+                                ArrayList<Message> res;
                                 if(config.length == 1)
                                     res = backend.outbox(usr);
                                 else
                                     res = backend.outbox(usr, config[1]);
-                                out.println("OKAY|OUTBOXSTART");
-                                while(res.next())
-                                    out.println(res.getString(1)+"|"+res.getString(3)+"|"+res.getString(4));
-                                out.println("OKAY|OUTBOXEND");
-                            }
-                            catch (SQLException err)
-                            {
-                                err.printStackTrace();
-                                out.println("ERROR|OUTBOX");
+                                if(res != null)
+                                {
+                                    out.println("OKAY|OUTBOXSTART");
+                                    for (Message msg : res)
+                                        out.println(msg.getTo()+"|"+msg.getDate()+"|"+msg.getContent());
+                                    out.println("OKAY|OUTBOXEND");
+                                }
+                                else
+                                    out.println("ERROR|OUTBOX");
                             }
                             catch (IllegalArgumentException err)
                             {
@@ -215,7 +213,7 @@ public class ServerThread extends Thread
                                     out.println("ERROR|INVALID");
                                     break main;
                                 }
-                            Message msg = new Message(config[1], usrname, config[2], config[3]);
+                            Message msg = new Message(config[1], usrname, LocalDateTime.parse(config[2]), config[3]);
                             if(backend.sendMessage(msg))
                                 out.println("OKAY|SENDMSG");
                             else
@@ -242,7 +240,7 @@ public class ServerThread extends Thread
                                 out.println("ERROR|INVALID");
                                 break;
                             }
-                            if(!checkEmail(config[6]))
+                            if(!checkDate(config[6]))
                             {
                                 out.println("ERROR|INVALID");
                                 break;
@@ -261,7 +259,7 @@ public class ServerThread extends Thread
                                     out.println("ERROR|INVALID");
                                     break main;
                                 }
-                            User usr = new User(config[1], config[2], config[3].equals("true"), config[4], config[5], config[6], config[7].equals("M") ? 'M' : 'F', config[8]);
+                            User usr = new User(config[1], config[2], config[3].equals("true"), config[4], config[5], LocalDate.parse(config[6], DateTimeFormatter.ofPattern("dd-MM-yyyy")), config[7].equals("M") ? 'M' : 'F', config[8]);
                             if (backend.addUser(usr))
                                 out.println("OKAY|ADDUSR");
                             else
@@ -339,7 +337,7 @@ public class ServerThread extends Thread
                                     case ("LASTNAME") -> usr.setLastName(config[2*i+3]);
                                     case ("BIRTHDAY") -> {
                                         if(checkDate(config[2*i+3]))
-                                            usr.setBirthday(config[2*i+3]);
+                                            usr.setBirthday(LocalDate.parse(config[2*i+3], DateTimeFormatter.ofPattern("dd-MM-yyyy")));
                                         else
                                         {
                                             out.println("ERROR|INVALID");
@@ -413,23 +411,25 @@ public class ServerThread extends Thread
                                 out.println("ERROR|ARGS");
                                 break;
                             }
-                            try
+                            ArrayList<User> res = backend.listUsers();
+                            if(res != null)
                             {
-                                ResultSet res = backend.listUsers();
                                 out.println("OKAY|LISTSTART");
-                                while(res.next())
-                                    out.println(res.getString(1)+"|"+res.getString(2)+"|"+res.getBoolean(3)+"|"+res.getString(4)+"|"+res.getString(5)+"|"+res.getString(6)+"|"+res.getString(7)+"|"+res.getString(8));
+                                for (User usr : res)
+                                    out.println(usr.getUsername() + "|" + usr.getPassword() + "|" + usr.getAdmin() + "|" + usr.getFirstName() + "|" + usr.getLastName() + "|" + usr.getBirthday() + "|" + usr.getGender() + "|" + usr.getEmail());
                                 out.println("OKAY|LISTEND");
                             }
-                            catch (SQLException err)
-                            {
+                            else
                                 out.println("ERROR|LISTUSRS");
-                                err.printStackTrace();
-                            }
                         }
                     }
                 }
             }
+        }
+        catch(SQLException err)
+        {
+            System.out.println("Unable to connect to the database.");
+            err.printStackTrace();
         }
         catch(IOException err)
         {

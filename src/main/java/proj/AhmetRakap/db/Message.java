@@ -1,10 +1,13 @@
 package proj.AhmetRakap.db;
 
+import java.time.LocalDateTime;
+
 public class Message
 {
-    private String to, from, date, content;
+    private String to, from, content;
+    private LocalDateTime date;
 
-    public Message(String _to, String _from, String _date, String _content)
+    public Message(String _to, String _from, LocalDateTime _date, String _content)
     {
         to=_to;
         from=_from;
@@ -22,7 +25,7 @@ public class Message
         from=_from;
     }
 
-    public void setDate(String _date)
+    public void setDate(LocalDateTime _date)
     {
         date=_date;
     }
@@ -42,7 +45,7 @@ public class Message
         return from;
     }
 
-    public String getDate()
+    public LocalDateTime getDate()
     {
         return date;
     }

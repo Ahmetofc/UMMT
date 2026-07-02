@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
@@ -160,7 +161,7 @@ public class Client
                             String[] msg = in.readLine().split("\\|");
                             while(!msg[0].equals("OKAY") || !msg[1].equals("INBOXEND"))
                             {
-                                System.out.println("Message from "+msg[0]+" at "+msg[1]+":");
+                                System.out.println("Message from "+msg[0]+" at "+LocalDateTime.parse(msg[1]).format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))+":");
                                 System.out.println(msg[2]);
                                 System.out.println();
                                 msg=in.readLine().split("\\|");
@@ -206,7 +207,7 @@ public class Client
                             String[] msg = in.readLine().split("\\|");
                             while(!msg[0].equals("OKAY") || !msg[1].equals("OUTBOXEND"))
                             {
-                                System.out.println("Message to "+msg[0]+" at "+msg[1]+":");
+                                System.out.println("Message to "+msg[0]+" at "+LocalDateTime.parse(msg[1]).format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))+":");
                                 System.out.println(msg[2]);
                                 System.out.println();
                                 msg=in.readLine().split("\\|");
@@ -247,9 +248,7 @@ public class Client
                         {
                             System.out.print("Enter your message:\n> ");
                             String sendmsg = sc.nextLine();
-                            LocalDateTime datetime = LocalDateTime.now();
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-                            out.println("SENDMSG|"+target+"|"+datetime.format(formatter)+"|"+sendmsg);
+                            out.println("SENDMSG|"+target+"|"+LocalDateTime.now()+"|"+sendmsg);
                             String[] response = in.readLine().split("\\|");
                             if(response[0].equals("OKAY"))
                             {
@@ -376,7 +375,7 @@ public class Client
                                     protocol += "PASSWORD|" + data + "|";
                                 }
                                 case ("admin status") -> {
-                                    System.out.print("Enter new admin status:\n> ");
+                                    System.out.print("Enter new admin status: (true/false)\n> ");
                                     data = sc.nextLine();
                                     if (data.equals("true") || data.equals("false"))
                                         protocol += "ADMINSTATUS|" + data + "|";
@@ -394,7 +393,7 @@ public class Client
                                     protocol += "LASTNAME|" + data + "|";
                                 }
                                 case ("birthday") -> {
-                                    System.out.print("Enter new birthday:\n> ");
+                                    System.out.print("Enter new birthday: (DD-MM-YYYY)\n> ");
                                     data = sc.nextLine();
                                     if(ServerThread.checkDate(data))
                                         protocol += "BIRTHDAY|" + data + "|";
@@ -402,7 +401,7 @@ public class Client
                                         System.out.println("Skipping invalid entry.");
                                 }
                                 case ("gender") -> {
-                                    System.out.print("Enter new gender:\n> ");
+                                    System.out.print("Enter new gender: (M/F)\n> ");
                                     data = sc.nextLine();
                                     if(data.equals("M") || data.equals("F"))
                                         protocol += "BIRTHDAY|" + data + "|";
@@ -513,7 +512,7 @@ public class Client
                                 System.out.println("Admin Status: "+usr[2]);
                                 System.out.println("First Name: "+usr[3]);
                                 System.out.println("Last Name: "+usr[4]);
-                                System.out.println("Birthday: "+usr[5]);
+                                System.out.println("Birthday: "+LocalDate.parse(usr[5]).format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
                                 System.out.println("Gender: "+usr[6]);
                                 System.out.println("Email: "+usr[7]);
                                 System.out.println();

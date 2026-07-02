@@ -1,14 +1,18 @@
 package proj.AhmetRakap.db;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 public class User
 {
     private String username, password;
     private Boolean admin;
-    private String firstName, lastName, birthday;
+    private String firstName, lastName;
     private Character gender;
+    private LocalDate birthday;
     private String email;
 
-    public User(String _username, String _password, Boolean _admin, String _firstName, String _lastName, String _birthday, Character _gender, String _email)
+    public User(String _username, String _password, Boolean _admin, String _firstName, String _lastName, LocalDate _birthday, Character _gender, String _email)
     {
         username=_username;
         password=_password;
@@ -60,7 +64,7 @@ public class User
         lastName=_lastName;
     }
 
-    public void setBirthday(String _birthday)
+    public void setBirthday(LocalDate _birthday)
     {
         birthday=_birthday;
     }
@@ -100,7 +104,7 @@ public class User
         return lastName;
     }
 
-    public String getBirthday()
+    public LocalDate getBirthday()
     {
         return birthday;
     }
