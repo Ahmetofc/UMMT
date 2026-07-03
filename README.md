@@ -6,6 +6,7 @@
 * [Architecture](#architecture)
     * [Data Flow Diagram](#data-flow-diagram)
     * [Tokens & Status Codes](#tokens--status-codes)
+        * [System Tokens](#system-tokens)
         * [Client-Side Tokens](#client-side-tokens)
         * [Server-Side Codes](#server-side-codes)
 * [Tools & Technologies](#tools--technologies)
