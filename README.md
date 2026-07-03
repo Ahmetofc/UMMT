@@ -56,6 +56,10 @@ flowchart LR
 
 #### Client-Side Tokens
 
+##### System Tokens
+* `ADMIN`, followed by `USERNAME` - performs an admin status check to prevent invalid access when admin status is revoked.
+* `EXISTS`, followed by `USERNAME` - performs an existence check to prevent invalid access when the user is deleted.
+
 ##### Regular User Tokens
 * `LOGIN`, followed by `USERNAME`, and `PASSWORD`- initiates the login request.
 * `LOGOUT` - initiates the logout process.
@@ -93,9 +97,11 @@ initiates the creation of another user in the system.
 * `ERROR|LISTUSRS` - unable to list users.
 
 ##### Success Codes
+* `OKAY|EXISTS` - user exist (system query).
+* `OKAY|NOTEXISTS` - user does not exist (system query).
 * `OKAY|LOG` - successful login/logout.
-* `OKAY|ADMIN` - user is admin.
-* `OKAY|NOTADMIN` - user is not an admin.
+* `OKAY|ADMIN` - user is admin (system and admin query).
+* `OKAY|NOTADMIN` - user is not an admin (system and admin query).
 * `OKAY|NOTLOG` - successfully logged out.
 * `OKAY|EXIT` - successful exit.
 * `OKAY|INBOXSTART` - sending inbox data.

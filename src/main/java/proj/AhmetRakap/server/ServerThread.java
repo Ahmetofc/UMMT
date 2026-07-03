@@ -22,8 +22,8 @@ public class ServerThread extends Thread
 {
     private Socket client;
     private String[] config;
-    private Boolean isAdmin=false;
-    private String usrname= "";
+    private Boolean isAdmin = false;
+    private String usrname = "";
     private static int count = 0;
 
     public ServerThread(Socket socket)
@@ -63,6 +63,58 @@ public class ServerThread extends Thread
                     config = input.split("\\|");
                     main:
                     switch (config[0]) {
+                        case ("ADMIN") -> {
+                            if(config.length != 2)
+                            {
+                                out.println("ERROR|ARGS");
+                                break;
+                            }
+                            if(usrname.isEmpty())
+                            {
+                                out.println("ERROR|NOTLOG");
+                                break;
+                            }
+                            for(String entry : config)
+                                if (entry.isEmpty())
+                                {
+                                    out.println("ERROR|INVALID");
+                                    break main;
+                                }
+                            User usr = new User(config[1]);
+                            if(backend.admin(usr))
+                            {
+                                out.println("OKAY|ADMIN");
+                                isAdmin = true;
+                            }
+                            else
+                            {
+                                out.println("OKAY|NOTADMIN");
+                                isAdmin = false;
+                            }
+                        }
+                        case ("EXISTS") -> {
+                            if(config.length != 2)
+                            {
+                                out.println("ERROR|ARGS");
+                                break;
+                            }
+                            if(usrname.isEmpty())
+                            {
+                                out.println("ERROR|NOTLOG");
+                                break;
+                            }
+                            for(String entry : config)
+                                if (entry.isEmpty())
+                                {
+                                    out.println("ERROR|INVALID");
+                                    break main;
+                                }
+                            User usr = new User(config[1]);
+                            if(backend.existsUser(usr))
+                                out.println("OKAY|EXISTS");
+                            else
+                                out.println("OKAY|NOTEXISTS");
+                        }
                         case ("LOGIN") -> {
                             if (config.length != 3)
                             {
@@ -416,7 +468,7 @@ public class ServerThread extends Thread
                             {
                                 out.println("OKAY|LISTSTART");
                                 for (User usr : res)
-                                    out.println(usr.getUsername() + "|" + usr.getPassword() + "|" + usr.getAdmin() + "|" + usr.getFirstName() + "|" + usr.getLastName() + "|" + usr.getBirthday() + "|" + usr.getGender() + "|" + usr.getEmail());
+                                    out.println(usr.getUsername() + "|" + usr.getAdmin() + "|" + usr.getFirstName() + "|" + usr.getLastName() + "|" + usr.getBirthday() + "|" + usr.getGender() + "|" + usr.getEmail());
                                 out.println("OKAY|LISTEND");
                             }
                             else

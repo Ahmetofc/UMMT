@@ -30,14 +30,11 @@ public class Client
 
     public static void main(String[] args)
     {
-        try
+        try (Socket client = new Socket("localhost", 8080); BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream())); PrintWriter out = new PrintWriter(client.getOutputStream(), true); Scanner sc = new Scanner(System.in))
         {
-            Socket client = new Socket("localhost", 8080);
-            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-            Scanner sc = new Scanner(System.in);
-            State state = State.LOGGED_OUT;
+            String usrname = "";
             Boolean adminStatus = false;
+            State state = State.LOGGED_OUT;
 
             while(true)
             {
@@ -46,13 +43,13 @@ public class Client
                     case LOGGED_OUT -> {
                         System.out.println("Welcome to UMMT - User Messaging and Management Tool!");
                         System.out.print("Username:\n> ");
-                        String usrname = sc.nextLine();
+                        usrname = sc.nextLine().strip();
                         System.out.print("Password:\n> ");
                         String pswd;
                         if(System.console() == null)
-                            pswd = sc.nextLine();
+                            pswd = sc.nextLine().strip();
                         else
-                            pswd = new String(System.console().readPassword());
+                            pswd = new String(System.console().readPassword()).strip();
                         out.println("LOGIN|"+usrname+"|"+pswd);
                         String[] response = in.readLine().split("\\|");
                         if(response[0].equals("OKAY"))
@@ -71,6 +68,45 @@ public class Client
                         }
                     }
                     case IDLE -> {
+                        if(!usrname.isEmpty())
+                        {
+                            out.println("EXISTS|"+usrname);
+                            String[] response = in.readLine().split("\\|");
+                            if(response[0].equals("OKAY") && response[1].equals("NOTEXISTS"))
+                            {
+                                usrname = "";
+                                adminStatus = false;
+                                state=State.LOGGED_OUT;
+                                System.out.println("User has been deleted.");
+                                break;
+                            }
+                            else switch(response[0])
+                            {
+                                case("ARGS") -> System.out.println("Invalid argument count.");
+                                case("NOTLOG") -> System.out.println("You are not logged in.");
+                                case("INVALID") -> System.out.println("Invalid entry.");
+                            }
+                            out.println("ADMIN|"+usrname);
+                            response = in.readLine().split("\\|");
+                            if(response[0].equals("OKAY"))
+                            {
+                                switch(response[1])
+                                {
+                                    case("ADMIN") -> adminStatus = true;
+                                    case("NOTADMIN") -> {
+                                        if(adminStatus)
+                                            System.out.println("Admin access has been revoked.");
+                                        adminStatus = false;
+                                    }
+                                }
+                            }
+                            else switch(response[0])
+                            {
+                                case("ARGS") -> System.out.println("Invalid argument count.");
+                                case("NOTLOG") -> System.out.println("You are not logged in.");
+                                case("INVALID") -> System.out.println("Invalid entry.");
+                            }
+                        }
                         System.out.println("Tell me what to do:");
                         System.out.println("1. logout - logs you out of the system.");
                         System.out.println("2. exit - terminates your connection to the server.");
@@ -86,7 +122,46 @@ public class Client
                             System.out.println("10. list - lists all of the users.");
                         }
                         System.out.print("> ");
-                        String action = sc.nextLine();
+                        String action = sc.nextLine().strip();
+                        if(!usrname.isEmpty())
+                        {
+                            out.println("EXISTS|"+usrname);
+                            String[] response = in.readLine().split("\\|");
+                            if(response[0].equals("OKAY") && response[1].equals("NOTEXISTS"))
+                            {
+                                usrname = "";
+                                adminStatus = false;
+                                state=State.LOGGED_OUT;
+                                System.out.println("User has been deleted.");
+                                break;
+                            }
+                            else switch(response[0])
+                            {
+                                case("ARGS") -> System.out.println("Invalid argument count.");
+                                case("NOTLOG") -> System.out.println("You are not logged in.");
+                                case("INVALID") -> System.out.println("Invalid entry.");
+                            }
+                            out.println("ADMIN|"+usrname);
+                            response = in.readLine().split("\\|");
+                            if(response[0].equals("OKAY"))
+                            {
+                                switch(response[1])
+                                {
+                                    case("ADMIN") -> adminStatus = true;
+                                    case("NOTADMIN") -> {
+                                        if(adminStatus)
+                                            System.out.println("Admin access has been revoked.");
+                                        adminStatus = false;
+                                    }
+                                }
+                            }
+                            else switch(response[0])
+                            {
+                                case("ARGS") -> System.out.println("Invalid argument count.");
+                                case("NOTLOG") -> System.out.println("You are not logged in.");
+                                case("INVALID") -> System.out.println("Invalid entry.");
+                            }
+                        }
                         switch(action)
                         {
                             case ("logout") -> {
@@ -96,6 +171,7 @@ public class Client
                                 if(response[0].equals("OKAY"))
                                 {
                                     TimeUnit.SECONDS.sleep(1);
+                                    usrname="";
                                     state=State.LOGGED_OUT;
                                 }
                                 else switch(response[1])
@@ -146,7 +222,7 @@ public class Client
                     }
                     case INBOX -> {
                         System.out.print("Do you want to filter by username? If yes write the username.\n> ");
-                        String mode = sc.nextLine();
+                        String mode = sc.nextLine().strip();
                         if(mode.equals("no"))
                             out.println("INBOX");
                         else
@@ -192,7 +268,7 @@ public class Client
                     }
                     case OUTBOX -> {
                         System.out.print("Do you want to filter by username? If yes write the username.\n> ");
-                        String mode = sc.nextLine();
+                        String mode = sc.nextLine().strip();
                         if(mode.equals("no"))
                             out.println("OUTBOX");
                         else
@@ -238,7 +314,7 @@ public class Client
                     }
                     case SENDMSG -> {
                         System.out.print("Who do you want to send message to? (type 'none' to exit)\n> ");
-                        String target = sc.nextLine();
+                        String target = sc.nextLine().strip();
                         if(target.equals("none"))
                         {
                             TimeUnit.SECONDS.sleep(2);
@@ -247,7 +323,7 @@ public class Client
                         else
                         {
                             System.out.print("Enter your message:\n> ");
-                            String sendmsg = sc.nextLine();
+                            String sendmsg = sc.nextLine().strip();
                             out.println("SENDMSG|"+target+"|"+LocalDateTime.now()+"|"+sendmsg);
                             String[] response = in.readLine().split("\\|");
                             if(response[0].equals("OKAY"))
@@ -276,26 +352,26 @@ public class Client
                     case ADDUSR -> {
                         System.out.println("You are adding a new user to the system.");
                         System.out.print("Enter username:\n> ");
-                        String usrname = sc.nextLine();
+                        String uname = sc.nextLine().strip();
                         System.out.print("Enter password:\n> ");
-                        String pswd = sc.nextLine();
+                        String pswd = sc.nextLine().strip();
                         System.out.print("Enter admin status: (true/false)\n> ");
-                        String admin = sc.nextLine();
+                        String admin = sc.nextLine().strip();
                         System.out.print("Enter first name:\n> ");
-                        String fname = sc.nextLine();
+                        String fname = sc.nextLine().strip();
                         System.out.print("Enter last name:\n> ");
-                        String lname = sc.nextLine();
+                        String lname = sc.nextLine().strip();
                         System.out.print("Enter birthday: (DD-MM-YYYY)\n> ");
-                        String bday = sc.nextLine();
+                        String bday = sc.nextLine().strip();
                         System.out.print("Enter gender: (M/F)\n> ");
-                        String gender = sc.nextLine();
+                        String gender = sc.nextLine().strip();
                         System.out.print("Enter email:\n> ");
-                        String email = sc.nextLine();
-                        out.println("ADDUSR|"+usrname+"|"+pswd+"|"+admin+"|"+fname+"|"+lname+"|"+bday+"|"+gender+"|"+email);
+                        String email = sc.nextLine().strip();
+                        out.println("ADDUSR|"+uname+"|"+pswd+"|"+admin+"|"+fname+"|"+lname+"|"+bday+"|"+gender+"|"+email);
                         String[] response = in.readLine().split("\\|");
                         if(response[0].equals("OKAY"))
                         {
-                            System.out.println("Successfully created user "+usrname+".");
+                            System.out.println("Successfully created user "+uname+".");
                             TimeUnit.SECONDS.sleep(2);
                             state=State.IDLE;
                         }
@@ -323,12 +399,12 @@ public class Client
                     case EXISTSUSR -> {
                         System.out.println("You are making a query.");
                         System.out.print("Enter username:\n> ");
-                        String usrname = sc.nextLine();
-                        out.println("EXISTSUSR|"+usrname);
+                        String uname = sc.nextLine().strip();
+                        out.println("EXISTSUSR|"+uname);
                         String[] response = in.readLine().split("\\|");
                         if(response[0].equals("OKAY"))
                         {
-                            System.out.println("User "+usrname+" is registered to the system.");
+                            System.out.println("User "+uname+" is registered to the system.");
                             TimeUnit.SECONDS.sleep(2);
                             state=State.IDLE;
                         }
@@ -347,7 +423,7 @@ public class Client
                             case ("ARGS") -> System.out.println("Invalid argument count.");
                             case ("INVALID") -> System.out.println("Invalid entry.");
                             case ("EXISTSUSR") -> {
-                                System.out.println("Unable to locate the user "+usrname+".");
+                                System.out.println("Unable to locate the user "+uname+".");
                                 TimeUnit.SECONDS.sleep(2);
                                 state=State.IDLE;
                             }
@@ -361,22 +437,22 @@ public class Client
                         String finish;
                         System.out.println("You are updating the specified fields for a given user.");
                         System.out.print("Enter username:\n> ");
-                        String usrname = sc.nextLine();
-                        protocol += usrname + "|";
+                        String uname = sc.nextLine().strip();
+                        protocol += uname + "|";
                         while(!done)
                         {
                             System.out.print("Specify a field: (password, admin status, first name, last name, birthday, gender, email)\nYou cannot change the username.\n> ");
-                            field = sc.nextLine();
+                            field = sc.nextLine().strip();
                             switch (field)
                             {
                                 case ("password") -> {
                                     System.out.print("Enter new password:\n> ");
-                                    data = sc.nextLine();
+                                    data = sc.nextLine().strip();
                                     protocol += "PASSWORD|" + data + "|";
                                 }
                                 case ("admin status") -> {
                                     System.out.print("Enter new admin status: (true/false)\n> ");
-                                    data = sc.nextLine();
+                                    data = sc.nextLine().strip();
                                     if (data.equals("true") || data.equals("false"))
                                         protocol += "ADMINSTATUS|" + data + "|";
                                     else
@@ -384,17 +460,17 @@ public class Client
                                 }
                                 case ("first name") -> {
                                     System.out.print("Enter new first name:\n> ");
-                                    data = sc.nextLine();
+                                    data = sc.nextLine().strip();
                                     protocol += "FIRSTNAME|" + data + "|";
                                 }
                                 case ("last name") -> {
                                     System.out.print("Enter new last name:\n> ");
-                                    data = sc.nextLine();
+                                    data = sc.nextLine().strip();
                                     protocol += "LASTNAME|" + data + "|";
                                 }
                                 case ("birthday") -> {
                                     System.out.print("Enter new birthday: (DD-MM-YYYY)\n> ");
-                                    data = sc.nextLine();
+                                    data = sc.nextLine().strip();
                                     if(ServerThread.checkDate(data))
                                         protocol += "BIRTHDAY|" + data + "|";
                                     else
@@ -402,7 +478,7 @@ public class Client
                                 }
                                 case ("gender") -> {
                                     System.out.print("Enter new gender: (M/F)\n> ");
-                                    data = sc.nextLine();
+                                    data = sc.nextLine().strip();
                                     if(data.equals("M") || data.equals("F"))
                                         protocol += "BIRTHDAY|" + data + "|";
                                     else
@@ -410,7 +486,7 @@ public class Client
                                 }
                                 case ("email") -> {
                                     System.out.print("Enter new email:\n> ");
-                                    data = sc.nextLine();
+                                    data = sc.nextLine().strip();
                                     if(!ServerThread.checkEmail(data))
                                         protocol += "EMAIL|" + data + "|";
                                     else
@@ -419,11 +495,11 @@ public class Client
                                 default -> System.out.println("Skipping invalid field, please try again.");
                             }
                             System.out.print("Are you done? (yes/no)\n> ");
-                            finish = sc.nextLine();
+                            finish = sc.nextLine().strip();
                             while(!finish.equals("yes") && !finish.equals("no"))
                             {
                                 System.out.print("> ");
-                                finish = sc.nextLine();
+                                finish = sc.nextLine().strip();
                             }
                             if(finish.equals("yes"))
                                 done=true;
@@ -433,7 +509,7 @@ public class Client
                         String[] response = in.readLine().split("\\|");
                         if(response[0].equals("OKAY"))
                         {
-                            System.out.println("Updated the user "+usrname+" with the given specifications.");
+                            System.out.println("Updated the user "+uname+" with the given specifications.");
                             TimeUnit.SECONDS.sleep(2);
                             state=State.IDLE;
                         }
@@ -452,7 +528,7 @@ public class Client
                             case ("ARGS") -> System.out.println("Invalid argument count.");
                             case ("INVALID") -> System.out.println("Invalid entries.");
                             case ("UPDATEUSR") -> {
-                                System.out.println("Unable to update the user "+usrname+".");
+                                System.out.println("Unable to update the user "+uname+".");
                                 TimeUnit.SECONDS.sleep(2);
                                 state=State.IDLE;
                             }
@@ -461,14 +537,14 @@ public class Client
                     case REMOVEUSR -> {
                         System.out.println("You are removing a user from the system.");
                         System.out.print("Enter username:\n> ");
-                        String usrname = sc.nextLine();
-                        System.out.print("Are you sure you want to delete "+usrname+" from the system? (yes/no)\n> ");
-                        if(sc.nextLine().equals("yes"))
+                        String uname = sc.nextLine().strip();
+                        System.out.print("Are you sure you want to delete "+uname+" from the system? (yes/no)\n> ");
+                        if(sc.nextLine().strip().equals("yes"))
                         {
-                            out.println("REMOVEUSR|" + usrname);
+                            out.println("REMOVEUSR|" + uname);
                             String[] response = in.readLine().split("\\|");
                             if (response[0].equals("OKAY")) {
-                                System.out.println("User " + usrname + " is removed from the system.");
+                                System.out.println("User " + uname + " is removed from the system.");
                                 TimeUnit.SECONDS.sleep(2);
                                 state = State.IDLE;
                             }
@@ -486,7 +562,7 @@ public class Client
                                 case ("ARGS") -> System.out.println("Invalid argument count.");
                                 case ("INVALID") -> System.out.println("Invalid entry.");
                                 case ("REMOVEUSR") -> {
-                                    System.out.println("Unable to remove the user " + usrname + " from the system.");
+                                    System.out.println("Unable to remove the user " + uname + " from the system.");
                                     TimeUnit.SECONDS.sleep(2);
                                     state = State.IDLE;
                                 }
@@ -508,13 +584,12 @@ public class Client
                             while(!usr[0].equals("OKAY") || !usr[1].equals("LISTEND"))
                             {
                                 System.out.println("Username: "+usr[0]);
-                                System.out.println("Password: "+usr[1]);
-                                System.out.println("Admin Status: "+usr[2]);
-                                System.out.println("First Name: "+usr[3]);
-                                System.out.println("Last Name: "+usr[4]);
-                                System.out.println("Birthday: "+LocalDate.parse(usr[5]).format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-                                System.out.println("Gender: "+usr[6]);
-                                System.out.println("Email: "+usr[7]);
+                                System.out.println("Admin Status: "+usr[1]);
+                                System.out.println("First Name: "+usr[2]);
+                                System.out.println("Last Name: "+usr[3]);
+                                System.out.println("Birthday: "+LocalDate.parse(usr[4]).format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+                                System.out.println("Gender: "+usr[5]);
+                                System.out.println("Email: "+usr[6]);
                                 System.out.println();
                                 usr=in.readLine().split("\\|");
                             }

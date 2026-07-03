@@ -7,12 +7,37 @@ import java.util.ArrayList;
 
 public class Api implements AutoCloseable
 {
-    private final String dbURL = "jdbc:postgresql://localhost:5432/ummt";
+    private final static String dbURL = "jdbc:postgresql://localhost:5432/ummt";
     private final Connection conn;
 
     public Api() throws SQLException
     {
         conn = DriverManager.getConnection(dbURL);
+    }
+
+    public static Boolean dbInit()
+    {
+        String query="CREATE TABLE IF NOT EXISTS users(username TEXT UNIQUE, password TEXT, admin BOOLEAN, firstName TEXT, lastName TEXT, birthday DATE, gender CHAR, email TEXT);" +
+                "INSERT INTO users (username, password, admin, firstName, lastname, birthday, gender, email) VALUES ('AhmetRakap', 'javaDevTest', true, 'Ahmet', 'Rakap', '12-11-2006', 'M', 'ahmet.rakap@metu.edu.tr') ON CONFLICT (username) DO NOTHING;" +
+                "INSERT INTO users (username, password, admin, firstName, lastname, birthday, gender, email) VALUES ('OtherAdmin', 'iAmAdmin', true, 'John', 'Smith', '01-01-1970', 'M', 'johnsmith@example.org') ON CONFLICT (username) DO NOTHING;" +
+                "INSERT INTO users (username, password, admin, firstName, lastname, birthday, gender, email) VALUES ('RandomUser', 'iAmUser', false, 'Sameen', 'Shaw', '06-12-1994', 'F', 'shaw_sameen@cia.gov') ON CONFLICT (username) DO NOTHING;" +
+                "INSERT INTO users (username, password, admin, firstName, lastname, birthday, gender, email) VALUES ('JohnReese', 'iamcia', true, 'John', 'Reese', '02-13-1985', 'M', 'johnreese@cia.gov') ON CONFLICT (username) DO NOTHING;" +
+                "CREATE TABLE IF NOT EXISTS registry(mTo TEXT, mFrom TEXT, date TIMESTAMP, content TEXT);" +
+                "INSERT INTO registry (mTo, mFrom, date, content) SELECT 'AhmetRakap', 'AhmetRakap', '01-01-1970 00:00:00', 'Hello World!'" +
+                "WHERE NOT EXISTS (SELECT 1 FROM registry WHERE mTO = 'AhmetRakap' AND mfrom = 'AhmetRakap' AND date = '01-01-1970 00:00:00' AND content = 'Hello World!');";
+        try
+        {
+            Connection conn = DriverManager.getConnection(dbURL);
+            PreparedStatement stmt = conn.prepareStatement(query);
+            Boolean value = stmt.executeUpdate() != 0;
+            conn.close();
+            return value;
+        }
+        catch(SQLException err)
+        {
+            err.printStackTrace();
+            return false;
+        }
     }
 
     public Boolean login(User usr)
@@ -34,12 +59,11 @@ public class Api implements AutoCloseable
 
     public Boolean admin(User usr)
     {
-        String query="SELECT U.admin FROM users U WHERE U.username=? AND U.password=?";
+        String query="SELECT U.admin FROM users U WHERE U.username=?";
         try
         {
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, usr.getUsername());
-            stmt.setString(2, usr.getPassword());
             ResultSet res = stmt.executeQuery();
             res.next();
             return res.getBoolean(1);

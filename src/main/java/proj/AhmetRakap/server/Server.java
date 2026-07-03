@@ -5,14 +5,16 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.ServerSocket;
 
+import proj.AhmetRakap.db.Api;
+
 public class Server
 {
     public static void main(String[] args)
     {
-        try
+        try(ServerSocket server = new ServerSocket(8080))
         {
-            ServerSocket server = new ServerSocket(8080);
             System.out.println("Server is up!");
+            Api.dbInit();
             while(true)
             {
                 Socket client = server.accept();
